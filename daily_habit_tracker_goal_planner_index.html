@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Günlük Alışkanlık ve Hedef Takibi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar for mobile sleekness */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans h-full flex justify-center items-center p-0 sm:p-4">
+
+    <!-- Mobile Screen Frame Container -->
+    <div class="w-full max-w-md h-full sm:h-[90vh] bg-white dark:bg-gray-800 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-gray-200 dark:border-gray-700">
+        
+        <!-- App Header Bar -->
+        <header class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center z-10 sticky top-0">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="text-brand-500"></i> Daily Tracker
+                </h1>
+                <p id="current-date-text" class="text-xs text-gray-500 dark:text-gray-400 font-medium"></p>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                    <i data-lucide="moon" id="theme-toggle-dark-icon" class="hidden w-5 h-5"></i>
+                    <i data-lucide="sun" id="theme-toggle-light-icon" class="w-5 h-5"></i>
+                </button>
+                <!-- Add Habit Button -->
+                <button id="open-add-modal-btn" class="bg-brand-500 hover:bg-brand-600 text-white p-2 rounded-xl flex items-center justify-center transition-all shadow-md active:scale-95">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 space-y-5">
+            
+            <!-- Daily Progress Card -->
+            <section class="bg-gradient-to-r from-brand-600 to-emerald-500 rounded-2xl p-4 text-white shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100">Bugünün İlerlemesi</span>
+                        <h2 id="progress-percentage-text" class="text-2xl font-black">0% Tamamlandı</h2>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <i data-lucide="trophy" class="w-6 h-6 text-yellow-300"></i>
+                    </div>
+                </div>
+                <!-- Progress Bar Track -->
+                <div class="w-full bg-black/20 rounded-full h-3 overflow-hidden">
+                    <div id="daily-progress-bar" class="bg-white h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+                <p id="progress-summary-text" class="text-xs text-emerald-100 mt-2 font-medium">0 / 0 hedef tamamlandı</p>
+            </section>
+
+            <!-- Filter Categories -->
+            <section class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-sm">
+                <button data-filter="all" class="filter-btn active bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 rounded-full font-medium shadow-sm transition-all whitespace-nowrap">Tümü</button>
+                <button data-filter="spor" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all whitespace-nowrap">🏃‍♂️ Spor</button>
+                <button data-filter="ders" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all whitespace-nowrap">📚 Ders Çalışma</button>
+                <button data-filter="kitap" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all whitespace-nowrap">📖 Kitap Okuma</button>
+                <button data-filter="diger" class="filter-btn bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all whitespace-nowrap">✨ Diğer</button>
+            </section>
+
+            <!-- Habits List -->
+            <section class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bugünün Hedefleri</h3>
+                    <span id="habit-count-badge" class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full font-bold">0</span>
+                </div>
+                <div id="habits-container" class="space-y-3 pb-12">
+                    <!-- Dynamic Habits will be inserted here -->
+                </div>
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-10 px-4">
+                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                        <i data-lucide="sparkles" class="w-8 h-8"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-700 dark:text-gray-300">Henüz Hedef Eklenmedi</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">"<b>+</b>" butonuna tıklayarak ilk spor, ders veya kitap alışkanlığını ekle!</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation Bar (Android Navigation Simulation) -->
+        <nav class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-2 flex justify-around items-center">
+            <button class="flex flex-col items-center text-brand-500 font-semibold text-xs">
+                <i data-lucide="list-todo" class="w-5 h-5 mb-0.5"></i>
+                Alışkanlıklar
+            </button>
+            <button id="reset-daily-btn" class="flex flex-col items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs transition-colors">
+                <i data-lucide="rotate-ccw" class="w-5 h-5 mb-0.5"></i>
+                Günü Sıfırla
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal: Add New Habit -->
+    <div id="add-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-end sm:items-center hidden transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 border border-gray-200 dark:border-gray-700 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Yeni Alışkanlık Ekle</h3>
+                <button id="close-add-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="add-habit-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Başlık</label>
+                    <input type="text" id="habit-title" required placeholder="Örn: 30 Dk Kitap Oku, 50 Şınav..." 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Kategori</label>
+                    <select id="habit-category" class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                        <option value="spor">🏃‍♂️ Spor & Egzersiz</option>
+                        <option value="ders">📚 Ders Çalışma & Odak</option>
+                        <option value="kitap">📖 Kitap Okuma</option>
+                        <option value="diger">✨ Diğer Alışkanlıklar</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Günlük Hedef Notu (Opsiyonel)</label>
+                    <input type="text" id="habit-target" placeholder="Örn: En az 20 sayfa veya 2 saat" 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.99] text-sm">
+                        Kaydet ve Başla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Default Sample Habits
+        const DEFAULT_HABITS = [
+            { id: '1', title: 'Sabah Sporu & Egzersiz', category: 'spor', target: '30 Dakika', completed: false, streak: 3 },
+            { id: '2', title: 'Matematik & Kodlama Çalışma', category: 'ders', target: '2 Saat Odak', completed: false, streak: 5 },
+            { id: '3', title: 'Kişisel Gelişim Kitabı Okuma', category: 'kitap', target: '20 Sayfa', completed: false, streak: 12 }
+        ];
+
+        // App State
+        let habits = [];
+        let activeFilter = 'all';
+
+        // Element Selectors
+        const habitsContainer = document.getElementById('habits-container');
+        const emptyState = document.getElementById('empty-state');
+        const progressBar = document.getElementById('daily-progress-bar');
+        const progressPercentageText = document.getElementById('progress-percentage-text');
+        const progressSummaryText = document.getElementById('progress-summary-text');
+        const habitCountBadge = document.getElementById('habit-count-badge');
+        const currentDateText = document.getElementById('current-date-text');
+        const addModal = document.getElementById('add-modal');
+        const addHabitForm = document.getElementById('add-habit-form');
+
+        // Dark Mode Setup
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Initialize App
+        window.onload = function() {
+            initDate();
+            initTheme();
+            loadHabits();
+            renderHabits();
+            lucide.createIcons();
+        };
+
+        // Date Display Setup
+        function initDate() {
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const today = new Date();
+            currentDateText.textContent = today.toLocaleDateString('tr-TR', options);
+        }
+
+        // Theme Initialization & Handler
+        function initTheme() {
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleDarkIcon.classList.remove('hidden');
+                themeToggleLightIcon.classList.add('hidden');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            themeToggleDarkIcon.classList.toggle('hidden');
+            themeToggleLightIcon.classList.toggle('hidden');
+
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+
+        // Load & Save State (Local Storage)
+        function loadHabits() {
+            const saved = localStorage.getItem('android_daily_habits');
+            if (saved) {
+                try {
+                    habits = JSON.parse(saved);
+                } catch (e) {
+                    habits = [...DEFAULT_HABITS];
+                }
+            } else {
+                habits = [...DEFAULT_HABITS];
+                saveHabits();
+            }
+        }
+
+        function saveHabits() {
+            localStorage.setItem('android_daily_habits', JSON.stringify(habits));
+            updateProgress();
+        }
+
+        // Category Badge Icon & Styling Helper
+        function getCategoryDetails(category) {
+            switch (category) {
+                case 'spor':
+                    return { label: 'Spor', icon: 'activity', bg: 'bg-orange-100 dark:bg-orange-950/40', text: 'text-orange-600 dark:text-orange-400' };
+                case 'ders':
+                    return { label: 'Ders', icon: 'book-open', bg: 'bg-blue-100 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400' };
+                case 'kitap':
+                    return { label: 'Kitap', icon: 'bookmark', bg: 'bg-purple-100 dark:bg-purple-950/40', text: 'text-purple-600 dark:text-purple-400' };
+                default:
+                    return { label: 'Diğer', icon: 'sparkles', bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-600 dark:text-gray-300' };
+            }
+        }
+
+        // Render Habits List
+        function renderHabits() {
+            habitsContainer.innerHTML = '';
+            
+            const filteredHabits = habits.filter(h => activeFilter === 'all' || h.category === activeFilter);
+            habitCountBadge.textContent = filteredHabits.length;
+
+            if (filteredHabits.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                filteredHabits.forEach(habit => {
+                    const cat = getCategoryDetails(habit.category);
+                    const isCompleted = habit.completed;
+
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 ${
+                        isCompleted 
+                            ? 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700/50 opacity-75' 
+                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md'
+                    }`;
+
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3.5 flex-1 min-w-0">
+                            <!-- Toggle Checkbox Button -->
+                            <button onclick="toggleHabit('${habit.id}')" class="w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
+                                isCompleted 
+                                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/30' 
+                                    : 'border-2 border-gray-300 dark:border-gray-600 hover:border-brand-500'
+                            }">
+                                ${isCompleted ? '<i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>' : ''}
+                            </button>
+                            
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-semibold text-sm text-gray-900 dark:text-white truncate ${isCompleted ? 'line-through text-gray-400 dark:text-gray-500' : ''}">
+                                        ${escapeHtml(habit.title)}
+                                    </h4>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${cat.bg} ${cat.text}">
+                                        <i data-lucide="${cat.icon}" class="w-3 h-3"></i> ${cat.label}
+                                    </span>
+                                    ${habit.target ? `<span class="text-xs text-gray-400 dark:text-gray-500 truncate">• ${escapeHtml(habit.target)}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Stats & Actions -->
+                        <div class="flex items-center gap-3">
+                            <!-- Streak Counter -->
+                            <div class="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-xl text-xs font-bold">
+                                <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500 fill-amber-500"></i>
+                                <span>${habit.streak} Gün</span>
+                            </div>
+                            
+                            <!-- Delete Button -->
+                            <button onclick="deleteHabit('${habit.id}')" class="text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 transition-colors p-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    habitsContainer.appendChild(card);
+                });
+            }
+
+            lucide.createIcons();
+            updateProgress();
+        }
+
+        // Action Handlers
+        window.toggleHabit = function(id) {
+            habits = habits.map(h => {
+                if (h.id === id) {
+                    const nextStatus = !h.completed;
+                    let nextStreak = h.streak;
+                    if (nextStatus) {
+                        nextStreak += 1;
+                    } else {
+                        nextStreak = Math.max(0, nextStreak - 1);
+                    }
+                    return { ...h, completed: nextStatus, streak: nextStreak };
+                }
+                return h;
+            });
+            saveHabits();
+            renderHabits();
+        };
+
+        window.deleteHabit = function(id) {
+            habits = habits.filter(h => h.id !== id);
+            saveHabits();
+            renderHabits();
+        };
+
+        // Overall Daily Progress Calculation
+        function updateProgress() {
+            const total = habits.length;
+            const completedCount = habits.filter(h => h.completed).length;
+            const percentage = total === 0 ? 0 : Math.round((completedCount / total) * 100);
+
+            progressBar.style.width = `${percentage}%`;
+            progressPercentageText.textContent = `${percentage}% Tamamlandı`;
+            progressSummaryText.textContent = `${completedCount} / ${total} hedef tamamlandı`;
+        }
+
+        // Modal Logic
+        const openAddModalBtn = document.getElementById('open-add-modal-btn');
+        const closeAddModalBtn = document.getElementById('close-add-modal-btn');
+
+        openAddModalBtn.addEventListener('click', () => {
+            addModal.classList.remove('hidden');
+        });
+
+        closeAddModalBtn.addEventListener('click', () => {
+            addModal.classList.add('hidden');
+        });
+
+        addModal.addEventListener('click', (e) => {
+            if (e.target === addModal) addModal.classList.add('hidden');
+        });
+
+        // Form Submit Logic
+        addHabitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('habit-title').value.trim();
+            const category = document.getElementById('habit-category').value;
+            const target = document.getElementById('habit-target').value.trim();
+
+            if (!title) return;
+
+            const newHabit = {
+                id: Date.now().toString(),
+                title: title,
+                category: category,
+                target: target,
+                completed: false,
+                streak: 0
+            };
+
+            habits.unshift(newHabit);
+            saveHabits();
+            renderHabits();
+
+            addHabitForm.reset();
+            addModal.classList.add('hidden');
+        });
+
+        // Category Filter Buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-gray-900', 'dark:bg-white', 'text-white', 'dark:text-gray-900');
+                    b.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+                });
+                
+                const targetBtn = e.target.closest('.filter-btn');
+                targetBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+                targetBtn.classList.add('bg-gray-900', 'dark:bg-white', 'text-white', 'dark:text-gray-900');
+
+                activeFilter = targetBtn.dataset.filter;
+                renderHabits();
+            });
+        });
+
+        // Daily Reset Handler
+        document.getElementById('reset-daily-btn').addEventListener('click', () => {
+            habits = habits.map(h => ({ ...h, completed: false }));
+            saveHabits();
+            renderHabits();
+        });
+
+        // Utility: Sanitizer
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
